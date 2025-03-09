@@ -42,17 +42,19 @@ Deployment, configuration, and image-building instructions are documented in:
 
 ## 📂 Directory Structure
 
-rr-app/ 
-├── rr-auth/ 
-├── rr-gateway/ 
-├── rr-payments/ 
-├── rr-store/ 
-├── rrsite/ 
-├── rr-app/ 
-│ ├── README.md 
-│ ├── DEPLOYMENT.md 
-│ ├── MONITORING.md 
-│ └── links.md
+```
+rr-app/
+├── rr-auth/
+├── rr-gateway/
+├── rr-payments/
+├── rr-store/
+├── rrsite/
+├── rr-app/
+│   ├── README.md
+│   ├── DEPLOYMENT.md
+│   ├── MONITORING.md
+│   └── links.md
+```
 
 ## 🛠️ Engineering Standards
 
