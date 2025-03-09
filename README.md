@@ -1,7 +1,7 @@
 # RR-App Microservices Platform
 
 
-> A production-grade, enterprise-level microservices architecture designed to showcase industry-standard engineering practices using Kubernetes, Docker, Spring Boot, Node.js, Prometheus, and Grafana.
+> A production-grade, enterprise-level microservices architecture designed to showcase industry-standard engineering practices using React, Kubernetes, Docker, Spring Boot, Node.js, Golang, Prometheus, and Grafana.
 
 ## 🌐 Overview
 
@@ -75,4 +75,4 @@ Tyler Pritchard
 
 - [Deployment Instructions](./DEPLOYMENT.md)
 - [Monitoring Setup](./MONITORING.md)
-- [Microservice Links](./links.md)# rr-app
+- [Microservice Links](./links.md)
