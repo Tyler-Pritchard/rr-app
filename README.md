@@ -1,55 +1,83 @@
 # RR-App Microservices Platform
 
-
-> A production-grade, enterprise-level microservices architecture designed to showcase industry-standard engineering practices using React, Kubernetes, Docker, Spring Boot, Node.js, Golang, Prometheus, and Grafana.
+> A production-grade, enterprise-ready microservices architecture for scalable commerce applications, featuring full-stack observability and service modularity across Node.js, Spring Boot, Golang, and React.
 
 ## 🌐 Overview
 
-RR-App is a modular, containerized microservices platform built to demonstrate scalable, maintainable architecture for real-world commerce applications. It includes user authentication, payment processing, product catalog management, and system observability — all orchestrated via Kubernetes.
-
-### 📐 Architecture Diagram
-![Architecture Diagram](./architecture.png)
+RR-App is a modular microservices system designed to support modern e-commerce platforms. It enables secure user authentication, catalog management, payment processing, and full observability — all deployed in a Kubernetes ecosystem. Services are containerized with Docker and integrate seamlessly using a central API gateway. Grafana and Prometheus provide real-time system monitoring, while each service remains independently testable and deployable.
 
 ## 🧱 Microservices Overview
 
-| Service        | Technology Stack        | Description                                 |
-|----------------|-------------------------|---------------------------------------------|
-| **rr-auth**    | Node.js, MongoDB, JWT   | User authentication and authorization.     |
-| **rr-store**   | Java, Spring Boot, PostgreSQL | E-commerce catalog and product management. |
-| **rr-payments**| Go, Stripe API          | Payment processing microservice.            |
-| **rr-gateway** | Go, Reverse Proxy       | Central API Gateway routing traffic.        |
-| **rrsite**	| React, Redux, TypeScript	|Frontend web application for end-user interface.
+| Service         | Technology Stack                | Description                                                                                                         |
+| --------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| [**rr-auth**](https://www.github.com/tyler-pritchard/rr-auth)     | Node.js, Express, MongoDB, JWT  | Handles user authentication, registration, and password reset with rate limiting, reCAPTCHA, and email integration. |
+| [**rr-store**](https://www.github.com/tyler-pritchard/rr-store)    | Java, Spring Boot, PostgreSQL   | E-commerce product catalog with CRUD operations, filtering, pagination, and observability endpoints.                |
+| [**rr-payments**](https://www.github.com/tyler-pritchard/rr-payments)  | Golang, Stripe API              | Processes payments via Stripe and serves internal billing endpoints.                                                |
+| [**rr-gateway**](https://www.github.com/tyler-pritchard/rr-gateway)   | Golang, Reverse Proxy (Chi/Mux) | Lightweight API Gateway for routing requests to internal services.                                                  |
+| [**rrsite**](https://www.github.com/tyler-pritchard/rrsite)       | React, Redux, TypeScript        | Frontend web application delivering a dynamic user experience. Integrates with backend APIs and user session state. |
 
-More details on each service can be found in their respective repos:
-- [rr-auth](https://www.github.com/tyler-pritchard/rr-auth)
-- [rr-store](https://www.github.com/tyler-pritchard/rr-store)
-- [rr-payments](https://www.github.com/tyler-pritchard/rr-payments)
-- [rr-gateway](https://www.github.com/tyler-pritchard/rr-gateway)
-- [rrsite](https://www.github.com/tyler-pritchard/rrsite)
+> Each service is independently containerized and modular by design. While services may be developed and deployed individually, Kubernetes enables orchestration of the entire system as a cohesive unit.
 
-## 📦 System Observability
+## 📊 Observability
 
-- **Prometheus** for metrics scraping
-- **Grafana** for visual dashboards
-- Health and readiness probes configured for each service
+- **Prometheus** — Integrated metrics scraping for all services via `/health` or `/actuator/prometheus` endpoints.
+- **Grafana** — Pre-configured dashboards via Helm for real-time insights.
+- Health and readiness probes are configured for each service to support container orchestration and autoscaling.
 
-See [`MONITORING.md`](./MONITORING.md) for setup and configuration.
+See [`MONITORING.md`](./MONITORING.md) for detailed observability configuration.
 
 ## 🚀 Getting Started
 
-Deployment, configuration, and image-building instructions are documented in:
-- [`DEPLOYMENT.md`](./DEPLOYMENT.md)
+The application is designed to be deployed as a complete Kubernetes stack, but services may also be run individually for modular development. See each service directory for detailed Docker and local development instructions.
+
+### Quick Setup
+
+1. Start a local Kubernetes cluster with Minikube:
+
+   ```bash
+   minikube start
+   minikube addons enable ingress
+   minikube addons enable metrics-server
+   ```
+
+2. Build Docker images locally (optional if not using Docker Hub):
+
+   ```bash
+   eval $(minikube docker-env)
+   docker build -t rr-auth ./rr-auth
+   docker build -t rr-store ./rr-store
+   docker build -t rr-payments ./rr-payments
+   docker build -t rr-gateway ./rr-gateway
+   ```
+
+3. Apply Kubernetes manifests for each service:
+
+   ```bash
+   kubectl apply -f rr-auth/
+   kubectl apply -f rr-store/
+   kubectl apply -f rr-payments/
+   kubectl apply -f rr-gateway/
+   ```
+
+4. Monitor application state:
+
+   ```bash
+   kubectl get pods -A
+   kubectl get svc -A
+   ```
+
+> See [`DEPLOYMENT.md`](./DEPLOYMENT.md) for detailed deployment and environment setup instructions.
 
 ## 📂 Directory Structure
 
-```
+```bash
 rr-app/
-├── rr-auth/
-├── rr-gateway/
-├── rr-payments/
-├── rr-store/
-├── rrsite/
-├── rr-app/
+├── rr-auth/           # Node.js Auth Service
+├── rr-gateway/        # Golang API Gateway
+├── rr-payments/       # Golang Payments Microservice
+├── rr-store/          # Java Spring Boot Store Service
+├── rrsite/            # React Frontend Application
+├── rr-app/            # Central Project Documentation
 │   ├── README.md
 │   ├── DEPLOYMENT.md
 │   ├── MONITORING.md
@@ -58,21 +86,27 @@ rr-app/
 
 ## 🛠️ Engineering Standards
 
-- Full environment parity with local Docker, Compose, and Minikube deployments
-- Centralized secret/environment management per service
-- Helm deployment for Prometheus/Grafana
-- Logging, security, metrics, and container health probes
-- Project-wide documentation designed for onboarding senior developers
+- Microservice-first architecture with domain separation
+- Environment-specific configuration for each service (e.g., `.env`, Kubernetes secrets)
+- Helm chart deployment for observability stack
+- Health/readiness probes on all services
+- CI-ready folder structure and metrics instrumentation
 
 ## 👤 Author
 
-Tyler Pritchard  
+Tyler Pritchard\
 [GitHub](https://github.com/tyler-pritchard) • [LinkedIn](https://linkedin.com/in/tyler-pritchard)
 
 ---
 
-### 📚 Additional Resources
+## 📚 Additional Resources
 
 - [Deployment Instructions](./DEPLOYMENT.md)
 - [Monitoring Setup](./MONITORING.md)
 - [Microservice Links](./links.md)
+
+---
+## 📄 License
+
+This project is licensed under the [MIT License](../LICENSE.md).  
+You are free to use, modify, and distribute this software with appropriate attribution.

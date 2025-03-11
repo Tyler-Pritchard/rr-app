@@ -1,14 +1,14 @@
 # MONITORING.md
 
-## 📊 Prometheus & Grafana Observability Stack
+## 📊 Observability with Prometheus & Grafana
 
-This document outlines how to install, configure, and access the observability tools used to monitor the RR Microservice Architecture.
+This document outlines the setup and configuration of system-wide observability tools for the RR-App Microservices Architecture. The monitoring stack enables developers and DevOps engineers to inspect runtime metrics, service health, and performance patterns across all microservices in the Kubernetes environment.
 
 ---
 
 ### 🔧 Prometheus Setup
 
-#### 1. Install Prometheus via Helm
+#### 1️⃣ Install Prometheus via Helm
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
@@ -17,53 +17,55 @@ helm install prometheus prometheus-community/prometheus \
   --create-namespace
 ```
 
-#### 2. Port Forward Prometheus Web UI
+#### 2️⃣ Port Forward the Prometheus Server UI
 ```bash
 kubectl port-forward -n monitoring svc/prometheus-server 9090:80
 ```
-Access via [http://localhost:9090](http://localhost:9090)
+Access Prometheus at: [http://localhost:9090](http://localhost:9090)
 
-#### 3. Prometheus Auto Discovery (Kubernetes Annotations)
-Ensure your deployments include the following metadata annotations:
+#### 3️⃣ Enable Prometheus Scraping for Services
+Ensure each Kubernetes deployment includes annotations:
 ```yaml
 annotations:
   prometheus.io/scrape: "true"
   prometheus.io/port: "8080"
   prometheus.io/path: "/actuator/prometheus"
 ```
-
+> Adjust the port and path depending on your service architecture.
 
 ---
 
 ### 📈 Grafana Setup
 
-#### 1. Install Grafana via Helm
+#### 1️⃣ Install Grafana via Helm
 ```bash
 helm install grafana prometheus-community/grafana \
   --namespace monitoring \
   --create-namespace
 ```
 
-#### 2. Retrieve Grafana Admin Password
+#### 2️⃣ Retrieve Admin Credentials
 ```bash
-kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+kubectl get secret --namespace monitoring grafana \
+  -o jsonpath="{.data.admin-password}" | base64 --decode
 ```
-Username: `admin`
+- **Username:** `admin`
 
-#### 3. Port Forward Grafana
+#### 3️⃣ Port Forward the Grafana UI
 ```bash
 kubectl port-forward -n monitoring svc/grafana 3000:80
 ```
-Access via [http://localhost:3000](http://localhost:3000)
-
+Access Grafana at: [http://localhost:3000](http://localhost:3000)
 
 ---
 
 ### 📂 Suggested Dashboards
-- JVM Micrometer Dashboard
-- Spring Boot Metrics
-- PostgreSQL Exporter Metrics
-- Go Services Metrics
+- Spring Boot JVM & Micrometer Metrics
+- Golang Services (Go Runtime Metrics)
+- PostgreSQL Exporter (if integrated)
+- Kubernetes Node Metrics (CPU, Memory, Network)
+
+> You can install prebuilt dashboards from [grafana.com/dashboards](https://grafana.com/dashboards)
 
 ---
 
@@ -71,20 +73,30 @@ Access via [http://localhost:3000](http://localhost:3000)
 ```sql
 up
 http_server_requests_seconds_count{app="rr-auth"}
-cpu_usage_seconds_total{job="kubelet"}
 jvm_memory_used_bytes{app="rr-store"}
 go_gc_duration_seconds_sum{job="rr-payments"}
+cpu_usage_seconds_total{job="kubelet"}
 ```
 
 ---
 
-### 📌 Notes
-- If a service is down in Prometheus, check `/actuator/prometheus` directly.
-- Use `kubectl describe pod <pod>` for debug logs.
-- Restart deployments if necessary via:
-```bash
-kubectl rollout restart deployment <deployment-name>
-```
+### 🧪 Troubleshooting Tips
+- Check failing services directly:
+  ```bash
+  curl http://<pod-ip>:8080/actuator/prometheus
+  ```
+- Investigate scrape errors in Prometheus UI under **Status → Targets**.
+- View detailed pod info:
+  ```bash
+  kubectl describe pod <pod-name>
+  ```
+- Restart pods to reload configuration:
+  ```bash
+  kubectl rollout restart deployment <deployment-name>
+  ```
+- Confirm `imagePullPolicy` and `secrets` are applied correctly if pods fail to start.
 
-Let me know if you'd like me to generate an ARCHITECTURE.png or a polished README.md sample next.
+---
+
+For additional metrics strategy, instrumentation libraries, and production-grade alerting rules, see future documentation under `monitoring/alert-rules/` and `monitoring/dashboards/` directories (planned).
 

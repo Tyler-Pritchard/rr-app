@@ -2,7 +2,7 @@
 
 ## 📦 Project Setup & Deployment Guide
 
-This document outlines the local development, Docker, and Kubernetes deployment instructions for the RR Microservice Architecture.
+This document outlines how to deploy the RR-App microservices architecture using Kubernetes and Docker.
 
 ---
 
@@ -93,10 +93,40 @@ docker-compose -f rr-gateway/docker-compose.yml up --build -d
 ---
 
 ### 🔍 Health Check Endpoints
+
 ```bash
-curl http://localhost:8080/actuator/health              # Store
-curl http://localhost:8081/health                       # Gateway
-curl http://localhost:8081/api/auth/health              # Auth
-curl http://localhost:8081/api/payments/health          # Payments
-curl http://localhost:8081/api/estore/health            # Store via Gateway
+curl http://localhost:8080/actuator/health              # rr-store
+curl http://localhost:8081/health                       # rr-gateway
+curl http://localhost:8081/api/auth/health              # rr-auth
+curl http://localhost:8081/api/payments/health          # rr-payments
+curl http://localhost:8081/api/estore/health            # rr-store via gateway
 ```
+
+---
+
+### ☁️ Observability Stack (Prometheus + Grafana)
+
+#### Install via Helm:
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+helm install prometheus prometheus-community/prometheus --namespace monitoring --create-namespace
+helm install grafana prometheus-community/grafana --namespace monitoring
+```
+
+#### Port-forward Grafana dashboard:
+```bash
+kubectl port-forward -n monitoring svc/grafana 3000:80
+```
+
+#### Default login credentials:
+- Username: `admin`
+- Password: 
+Run:
+```bash
+kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+For more details, see [`MONITORING.md`](./MONITORING.md).
+
