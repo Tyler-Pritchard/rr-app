@@ -1,14 +1,14 @@
 # MONITORING.md
 
-## 📊 Observability with Prometheus & Grafana
+## 📊 Observability Stack: Prometheus & Grafana
 
-This document outlines the setup and configuration of system-wide observability tools for the RR-App Microservices Architecture. The monitoring stack enables developers and DevOps engineers to inspect runtime metrics, service health, and performance patterns across all microservices in the Kubernetes environment.
+This guide outlines best practices and deployment instructions for the Prometheus + Grafana monitoring stack within the RR-App microservices platform.
 
 ---
 
-### 🔧 Prometheus Setup
+### 🔧 Prometheus Setup (Helm)
 
-#### 1️⃣ Install Prometheus via Helm
+1. **Install Prometheus using Helm:**
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
@@ -17,86 +17,83 @@ helm install prometheus prometheus-community/prometheus \
   --create-namespace
 ```
 
-#### 2️⃣ Port Forward the Prometheus Server UI
+2. **Port-forward Prometheus Server UI:**
 ```bash
 kubectl port-forward -n monitoring svc/prometheus-server 9090:80
 ```
-Access Prometheus at: [http://localhost:9090](http://localhost:9090)
+Access Prometheus at [http://localhost:9090](http://localhost:9090)
 
-#### 3️⃣ Enable Prometheus Scraping for Services
-Ensure each Kubernetes deployment includes annotations:
+3. **Enable Pod-Level Metrics Scraping:**
+Ensure each deployment includes appropriate scrape annotations:
 ```yaml
 annotations:
   prometheus.io/scrape: "true"
   prometheus.io/port: "8080"
   prometheus.io/path: "/actuator/prometheus"
 ```
-> Adjust the port and path depending on your service architecture.
 
 ---
 
-### 📈 Grafana Setup
+### 📈 Grafana Setup (Helm)
 
-#### 1️⃣ Install Grafana via Helm
+1. **Install Grafana:**
 ```bash
 helm install grafana prometheus-community/grafana \
   --namespace monitoring \
   --create-namespace
 ```
 
-#### 2️⃣ Retrieve Admin Credentials
+2. **Retrieve Admin Credentials:**
 ```bash
 kubectl get secret --namespace monitoring grafana \
   -o jsonpath="{.data.admin-password}" | base64 --decode
 ```
-- **Username:** `admin`
+Username: `admin`
 
-#### 3️⃣ Port Forward the Grafana UI
+3. **Port-forward Grafana UI:**
 ```bash
 kubectl port-forward -n monitoring svc/grafana 3000:80
 ```
-Access Grafana at: [http://localhost:3000](http://localhost:3000)
+Access Grafana at [http://localhost:3000](http://localhost:3000)
 
 ---
 
-### 📂 Suggested Dashboards
-- Spring Boot JVM & Micrometer Metrics
-- Golang Services (Go Runtime Metrics)
-- PostgreSQL Exporter (if integrated)
-- Kubernetes Node Metrics (CPU, Memory, Network)
-
-> You can install prebuilt dashboards from [grafana.com/dashboards](https://grafana.com/dashboards)
+### 📂 Recommended Dashboards
+- JVM Micrometer Metrics (rr-store)
+- Spring Boot Health & Metrics
+- PostgreSQL Exporter
+- Golang Service Runtime Metrics (rr-gateway, rr-payments)
+- Node.js Application Metrics (rr-auth)
+- Kubernetes Cluster Overview
 
 ---
 
-### 🔍 Example PromQL Queries
+### 📊 Sample PromQL Queries
 ```sql
 up
-http_server_requests_seconds_count{app="rr-auth"}
 jvm_memory_used_bytes{app="rr-store"}
 go_gc_duration_seconds_sum{job="rr-payments"}
-cpu_usage_seconds_total{job="kubelet"}
+http_server_requests_seconds_count{app="rr-auth"}
+process_cpu_usage{app="rr-gateway"}
 ```
 
 ---
 
-### 🧪 Troubleshooting Tips
-- Check failing services directly:
-  ```bash
-  curl http://<pod-ip>:8080/actuator/prometheus
-  ```
-- Investigate scrape errors in Prometheus UI under **Status → Targets**.
-- View detailed pod info:
-  ```bash
-  kubectl describe pod <pod-name>
-  ```
-- Restart pods to reload configuration:
-  ```bash
-  kubectl rollout restart deployment <deployment-name>
-  ```
-- Confirm `imagePullPolicy` and `secrets` are applied correctly if pods fail to start.
+### 🔍 Troubleshooting Tips
+- Check `/actuator/prometheus` on each service to confirm metrics exposure.
+- Use `kubectl describe pod <pod>` for pod-level debugging.
+- Restart pods when necessary:
+```bash
+kubectl rollout restart deployment <deployment-name>
+```
 
 ---
 
-For additional metrics strategy, instrumentation libraries, and production-grade alerting rules, see future documentation under `monitoring/alert-rules/` and `monitoring/dashboards/` directories (planned).
+### 📌 Observability Best Practices
+- Monitor system availability via `up` query.
+- Track SLI metrics: request latency, error rate, CPU/memory utilization.
+- Define SLOs in Grafana using threshold markers.
+- Enable alerting rules in Prometheus or Grafana for proactive monitoring.
+
+For production environments, consider integrating OpenTelemetry for distributed tracing.
 

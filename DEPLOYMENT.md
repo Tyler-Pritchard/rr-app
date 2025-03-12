@@ -2,59 +2,79 @@
 
 ## 📦 Project Setup & Deployment Guide
 
-This document outlines how to deploy the RR-App microservices architecture using Kubernetes and Docker.
+This document provides a comprehensive overview for deploying the RR-App Microservices Architecture in local and production-like environments.
 
 ---
 
-### 🔧 Kubernetes Setup
+## ⚙️ Kubernetes Deployment
 
-#### 1. Start Minikube Cluster
+### 1. Start Minikube and Enable Addons
 ```bash
 minikube start
 minikube addons enable ingress
 minikube addons enable metrics-server
 ```
 
-#### 2. Verify Cluster Status
+### 2. Verify Cluster Health
 ```bash
 kubectl get pods -A
 kubectl get svc -A
 kubectl get deployments -A
 ```
 
-#### 3. Apply Kubernetes Deployments
+### 3. Apply Service Deployments
 ```bash
+# RR-Store
 kubectl apply -f rr-store/postgres-deployment.yaml
 kubectl apply -f rr-store/rr-store-deployment.yaml
 kubectl apply -f rr-store/rr-store-service.yaml
 
+# RR-Payments
 kubectl apply -f rr-payments/rr-payments-deployment.yaml
 kubectl apply -f rr-payments/rr-payments-service.yaml
 
+# RR-Gateway
 kubectl apply -f rr-gateway/rr-gateway-deployment.yaml
+kubectl apply -f rr-gateway/rr-gateway-service.yaml
 
+# RR-Auth
+kubectl apply -f rr-auth/rr-auth-config.yaml
+kubectl apply -f rr-auth/rr-auth-secret.yaml
 kubectl apply -f rr-auth/rr-auth-deployment.yaml
 kubectl apply -f rr-auth/rr-auth-service.yaml
-kubectl apply -f rr-auth/rr-auth-config.yaml
 kubectl apply -f rr-auth/rr-auth-ingress.yaml
-kubectl apply -f rr-auth/rr-auth-secret.yaml
 ```
 
-#### 4. Confirm Pod Status
+### 4. Confirm System Status
 ```bash
 kubectl get pods -A
 ```
 
+### 5. Helm-Based Observability Stack
+```bash
+# Prometheus
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install prometheus prometheus-community/prometheus \
+  --namespace monitoring \
+  --create-namespace
+
+# Grafana
+helm install grafana prometheus-community/grafana \
+  --namespace monitoring \
+  --create-namespace
+```
+
 ---
 
-### 🐳 Local Docker Development
+## 🐳 Docker-Based Development
 
-#### 1. Set Minikube Docker Environment
+### 1. Configure Local Docker Environment
 ```bash
 eval $(minikube docker-env)
 ```
 
-#### 2. Build Docker Images Locally
+### 2. Build Service Images
 ```bash
 docker build -t rr-store:latest ./rr-store
 docker build -t rr-payments:latest ./rr-payments
@@ -62,7 +82,7 @@ docker build -t rr-gateway:latest ./rr-gateway
 docker build -t rr-auth:latest ./rr-auth
 ```
 
-#### 3. Reapply Deployment Configs (if needed)
+### 3. Reapply Kubernetes Deployment (if updated)
 ```bash
 kubectl apply -f rr-store/rr-store-deployment.yaml
 kubectl apply -f rr-payments/rr-payments-deployment.yaml
@@ -72,17 +92,17 @@ kubectl apply -f rr-auth/rr-auth-deployment.yaml
 
 ---
 
-### 🔁 Docker Compose (Local Testing)
+## 🧪 Docker Compose (Optional for Local Testing)
 
-#### 1. Stop Previous Services
+### 1. Shut Down Existing Containers
 ```bash
 docker-compose -f rr-store/docker-compose.yml down
-docker-compose -f rr-gateway/docker-compose.yml down
-docker-compose -f rr-payments/docker-compose.yml down
 docker-compose -f rr-auth/docker-compose.yml down
+docker-compose -f rr-payments/docker-compose.yml down
+docker-compose -f rr-gateway/docker-compose.yml down
 ```
 
-#### 2. Run Services
+### 2. Run Services in Detached Mode
 ```bash
 docker-compose -f rr-store/docker-compose.yml up --build -d
 docker-compose -f rr-auth/docker-compose.yml up --build -d
@@ -92,41 +112,23 @@ docker-compose -f rr-gateway/docker-compose.yml up --build -d
 
 ---
 
-### 🔍 Health Check Endpoints
-
+## 🔍 Health Check Endpoints
 ```bash
-curl http://localhost:8080/actuator/health              # rr-store
-curl http://localhost:8081/health                       # rr-gateway
-curl http://localhost:8081/api/auth/health              # rr-auth
-curl http://localhost:8081/api/payments/health          # rr-payments
-curl http://localhost:8081/api/estore/health            # rr-store via gateway
+curl http://localhost:8080/actuator/health              # RR-Store
+curl http://localhost:8081/health                       # RR-Gateway
+curl http://localhost:8081/api/auth/health              # RR-Auth
+curl http://localhost:8081/api/payments/health          # RR-Payments
+curl http://localhost:8081/api/estore/health            # RR-Store via Gateway
 ```
 
 ---
 
-### ☁️ Observability Stack (Prometheus + Grafana)
+## ✅ Best Practices
+- Use `--validate=false` when applying manifests that include non-Kubernetes files (e.g., `docker-compose.yml`).
+- Declare shared Docker networks when using Compose across multiple services.
+- Consolidate environment variable management using `secrets.env` per service.
+- Run `kubectl rollout restart deployment <deployment>` when applying updates to service images.
+- Refer to [`MONITORING.md`](./MONITORING.md) for observability stack setup.
 
-#### Install via Helm:
-```bash
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
-
-helm install prometheus prometheus-community/prometheus --namespace monitoring --create-namespace
-helm install grafana prometheus-community/grafana --namespace monitoring
-```
-
-#### Port-forward Grafana dashboard:
-```bash
-kubectl port-forward -n monitoring svc/grafana 3000:80
-```
-
-#### Default login credentials:
-- Username: `admin`
-- Password: 
-Run:
-```bash
-kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
-```
-
-For more details, see [`MONITORING.md`](./MONITORING.md).
+For detailed service-specific instructions, refer to each service's respective `README.md` file.
 
