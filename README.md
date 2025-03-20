@@ -16,6 +16,7 @@ RR-App is a modular, containerized microservices platform designed to support a 
 | **rr-auth**    | Node.js, MongoDB, JWT         | User authentication and authorization service    |
 | **rr-store**   | Java, Spring Boot, PostgreSQL | Product catalog and storefront service           |
 | **rr-payments**| Go, Stripe API                | Payment processing and transaction service       |
+| **rr-events**  | .NET 8/ASP.NET, PostgreSQL    | Events calendaring and tracking service          |
 | **rr-gateway** | Go, Reverse Proxy             | Central API Gateway for routing and aggregation  |
 | **rrsite**     | React, Redux, TypeScript      | Frontend web application                         |
 
@@ -23,6 +24,7 @@ More details on each service can be found in their respective repos:
 - [rr-auth](https://www.github.com/tyler-pritchard/rr-auth)
 - [rr-store](https://www.github.com/tyler-pritchard/rr-store)
 - [rr-payments](https://www.github.com/tyler-pritchard/rr-payments)
+- [rr-events](https://www.github.com/tyler-pritchard/rr-events)
 - [rr-gateway](https://www.github.com/tyler-pritchard/rr-gateway)
 - [rrsite](https://www.github.com/tyler-pritchard/rrsite)
 

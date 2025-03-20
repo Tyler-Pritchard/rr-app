@@ -132,3 +132,10 @@ curl http://localhost:8081/api/estore/health            # RR-Store via Gateway
 
 For detailed service-specific instructions, refer to each service's respective `README.md` file.
 
+### 🛠 Troubleshooting
+- Check Prometheus targets: [http://localhost:9090/targets](http://localhost:9090/targets)
+- Use `kubectl describe pod <pod>` to investigate crashing containers.
+- Use `kubectl logs <pod>` to view runtime exceptions.
+- Restart deployments if necessary:
+  ```bash
+  kubectl rollout restart deployment <deployment-name>

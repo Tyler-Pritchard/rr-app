@@ -32,6 +32,28 @@ annotations:
   prometheus.io/path: "/actuator/prometheus"
 ```
 
+### ✅ Verify Metrics Are Flowing
+
+Open the Prometheus Web UI:
+
+- Navigate to: [http://localhost:9090/targets](http://localhost:9090/targets)
+- Confirm all targets are marked as **`UP`**
+
+You can also test metrics availability by running basic queries from the Prometheus "Expression" tab:
+
+```promql
+up
+jvm_memory_used_bytes{app="rr-store"}
+http_server_requests_seconds_count{job="kubernetes-pods"}
+```
+
+If any targets are listed as **`DOWN`**, inspect the associated pod:
+
+```bash
+kubectl describe pod <pod-name>
+kubectl logs <pod-name> --tail=100
+```
+
 ---
 
 ### 📈 Grafana Setup (Helm)
